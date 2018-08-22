@@ -47,7 +47,7 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-
+            mService.setListener(null);
         }
     };
 
@@ -91,6 +91,7 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
                 mService.saveRecordAsync();
                 break;
             case R.id.record_right:
+                mService.pauseRecordingAsync();
                 break;
         }
     }

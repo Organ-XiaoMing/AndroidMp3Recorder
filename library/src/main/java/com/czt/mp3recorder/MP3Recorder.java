@@ -44,8 +44,14 @@ public class MP3Recorder {
 	private int mBufferSize;
 	private short[] mPCMBuffer;
 	private DataEncodeThread mEncodeThread;
-	private boolean mIsRecording = false;
+	private int currentState = STATE_IDLE;
 	private File mRecordFile;
+
+	public static final int STATE_IDLE = 1;
+	public static final int STATE_RECORDING = 2;
+	public static final int STATE_PAUSE_RECORDING = 3;
+	public static final int STATE_SAVE_RECORDING = 4;
+
 	/**
 	 * Default constructor. Setup recorder with default sampling rate 1 channel,
 	 * 16 bits pcm
@@ -62,10 +68,10 @@ public class MP3Recorder {
 	 * @throws IOException  initAudioRecorder throws
 	 */
 	public void start() throws IOException {
-		if (mIsRecording) {
+		if (isRecording()) {
 			return;
 		}
-		mIsRecording = true; // 提早，防止init或startRecording被多次调用
+		currentState = STATE_RECORDING; // 提早，防止init或startRecording被多次调用
 	    initAudioRecorder();
 		mAudioRecord.startRecording();
 		new Thread() {
@@ -73,11 +79,13 @@ public class MP3Recorder {
 			public void run() {
 				//设置线程权限
 				android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-				while (mIsRecording) {
-					int readSize = mAudioRecord.read(mPCMBuffer, 0, mBufferSize);
-					if (readSize > 0) {
-						mEncodeThread.addTask(mPCMBuffer, readSize);
-						calculateRealVolume(mPCMBuffer, readSize);
+				while(currentState != STATE_SAVE_RECORDING) {
+					while (isRecording()) {
+						int readSize = mAudioRecord.read(mPCMBuffer, 0, mBufferSize);
+						if (readSize > 0) {
+							mEncodeThread.addTask(mPCMBuffer, readSize);
+							calculateRealVolume(mPCMBuffer, readSize);
+						}
 					}
 				}
 				// release and finalize audioRecord
@@ -137,10 +145,19 @@ public class MP3Recorder {
 		return MAX_VOLUME;
 	}
 	public void stop(){
-		mIsRecording = false;
+		currentState = STATE_SAVE_RECORDING;
 	}
+
+	public void restart(){
+		currentState = STATE_RECORDING;
+	}
+
+	public void  pause(){
+		currentState = STATE_PAUSE_RECORDING;
+	}
+
 	public boolean isRecording() {
-		return mIsRecording;
+		return currentState == STATE_RECORDING;
 	}
 	/**
 	 * Initialize audio recorder

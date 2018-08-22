@@ -28,7 +28,7 @@ public class SoundRecordService extends Service{
     public static final int STATE_IDLE = 1;
     public static final int STATE_RECORDING = 2;
     public static final int STATE_PAUSE_RECORDING = 3;
-    public static final int STATE_SAVE_RECORDING = 3;
+    public static final int STATE_SAVE_RECORDING = 4;
     private int mCurrentState = STATE_IDLE;
     public static final String HANDLER_THREAD_NAME = "SoundRecorderServiceHandler";
 
@@ -115,6 +115,7 @@ public class SoundRecordService extends Service{
                     record();
                     break;
                 case PAUSE_REOCRD:
+                    pauserrecord();
                     break;
                 case STOP_REOCRD:
                     stoprecord();
@@ -127,10 +128,14 @@ public class SoundRecordService extends Service{
     }
 
     public void record(){
-        try {
-            mMp3Record.start();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(mCurrentState == STATE_PAUSE_RECORDING){
+            mMp3Record.restart();
+        }else {
+            try {
+                mMp3Record.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         setState(STATE_RECORDING);
     }
@@ -138,6 +143,11 @@ public class SoundRecordService extends Service{
     public void stoprecord(){
         mMp3Record.stop();
         setState(STATE_SAVE_RECORDING);
+    }
+
+    public void pauserrecord(){
+        mMp3Record.pause();
+        setState(STATE_PAUSE_RECORDING);
     }
 
     public interface RecorderListener {
