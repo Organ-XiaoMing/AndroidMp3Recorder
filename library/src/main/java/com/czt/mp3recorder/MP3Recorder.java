@@ -3,6 +3,7 @@ package com.czt.mp3recorder;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.util.Log;
 
 import com.czt.mp3recorder.util.LameUtil;
 
@@ -10,6 +11,9 @@ import java.io.File;
 import java.io.IOException;
 
 public class MP3Recorder {
+	
+	private static final String TAG = "MP3Recorder";
+	
 	//=======================AudioRecord Default Settings=======================
 	private static final int DEFAULT_AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
 	/**
@@ -61,13 +65,18 @@ public class MP3Recorder {
 		mRecordFile = recordFile;
 	}
 
+	public MP3Recorder(){
+
+	}
+
 	/**
 	 * Start recording. Create an encoding thread. Start record from this
 	 * thread.
 	 * 
 	 * @throws IOException  initAudioRecorder throws
 	 */
-	public void start() throws IOException {
+	public void start(File file) throws IOException {
+		mRecordFile = file;
 		if (isRecording()) {
 			return;
 		}
@@ -144,8 +153,13 @@ public class MP3Recorder {
 	public int getMaxVolume(){
 		return MAX_VOLUME;
 	}
+
 	public void stop(){
 		currentState = STATE_SAVE_RECORDING;
+	}
+
+	public File getRecordFile(){
+	  return mRecordFile;
 	}
 
 	public void restart(){

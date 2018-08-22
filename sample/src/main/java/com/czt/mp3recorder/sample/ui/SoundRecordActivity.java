@@ -92,6 +92,7 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
                 break;
             case R.id.record_right:
                 mService.pauseRecordingAsync();
+                launcerRecordList();
                 break;
         }
     }
@@ -133,4 +134,8 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
         }
     }
 
+    public void launcerRecordList(){
+        Intent intent = new Intent(SoundRecordActivity.this,SoundRecordListActivity.class);
+        startActivity(intent);
+    }
 }

@@ -1,5 +1,11 @@
-<resources>
-
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">MP3RecordSample</string>
     <string name="record_title">录音</string>
+    <string name="audio_db_title_format"><xliff:g id="format">yyyy-MM-dd HH:mm:ss</xliff:g></string>
+    <string name="unknown_artist_name">unknown_artist</string>
+    <string name="audio_db_album_name">unknown_artist</string>
+    <string name="audio_db_playlist_name">My recordings</string>
+    <string name="select">选择</string>
+    <string name="record_list_title">录音记录</string>
 </resources>
