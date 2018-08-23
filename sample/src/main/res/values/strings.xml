@@ -8,4 +8,7 @@
     <string name="audio_db_playlist_name">My recordings</string>
     <string name="select">选择</string>
     <string name="record_list_title">录音记录</string>
+    <string name="record_check_all">全选</string>
+    <string name="record_check_delete">删除</string>
+    <string name="record_check_list_title">录音列表</string>
 </resources>

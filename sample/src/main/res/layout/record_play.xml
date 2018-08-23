@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/record_bg"
+    >
+    <com.czt.mp3recorder.sample.view.HeadActionbar
+        android:id="@+id/action_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    </com.czt.mp3recorder.sample.view.HeadActionbar>
+
+    <TextView
+        android:id="@+id/play_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="70dp"
+        android:textSize="40dp"
+        android:textColor="#e6e6e6"
+        android:text="00:00:28"
+        />
+    <TextView
+        android:id="@+id/play_countdown_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="60dp"
+        android:textSize="30dp"
+        android:textColor="#18bca5"
+        android:text="00:32:58"
+        />
+      <ImageView
+          android:id="@+id/play_pause"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_gravity="center_horizontal"
+          android:src="@drawable/play"
+          android:layout_marginTop="60dp"
+          />
+</LinearLayout>

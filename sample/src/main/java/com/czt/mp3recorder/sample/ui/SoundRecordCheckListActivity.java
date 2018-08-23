@@ -1,11 +1,10 @@
 package com.czt.mp3recorder.sample.ui;
 
 import com.czt.mp3recorder.sample.R;
-
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -13,10 +12,13 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.czt.mp3recorder.sample.adapter.RecordCheckListAdapter;
 import com.czt.mp3recorder.sample.adapter.RecordListAdapter;
 import com.czt.mp3recorder.sample.util.LogUtils;
+import com.czt.mp3recorder.sample.util.SoundRecorderUtils;
 import com.czt.mp3recorder.sample.view.HeadActionbar;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,9 +29,9 @@ import java.util.List;
  * Created by Ming.Xiao on 2018/8/22.
  */
 
-public class SoundRecordListActivity extends BaseActivity implements View.OnClickListener,ListView.OnItemClickListener{
+public class SoundRecordCheckListActivity extends BaseActivity implements View.OnClickListener,ListView.OnItemClickListener{
 
-    private static final String TAG ="SoundRecordListActivity";
+    private static final String TAG ="SoundRecordCheckListActivity";
 
     private final ArrayList<HashMap<String, Object>> mArrlist = new ArrayList<HashMap<String, Object>>();
     private final ArrayList<String> mNameList = new ArrayList<String>();
@@ -37,7 +39,7 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
     private final ArrayList<String> mTitleList = new ArrayList<String>();
     private final ArrayList<String> mDurationList = new ArrayList<String>();
     private final List<Long> mIdList = new ArrayList<Long>();
-    private List<Integer> mCheckedList = new ArrayList<Integer>();
+    private List<String> mCheckedList = new ArrayList<String>();
 
     private QueryDataTask mQueryTask;
     private static final int ONE_SECOND_LIST = 1000;
@@ -45,7 +47,6 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
     private int mCurrentAdapterMode = NORMAL;
 
     private static final int NO_CHECK_POSITION = -1;
-    private static final int DEFAULT_SLECTION = -1;
 
     private static final int PATH_INDEX = 2;
     private static final int DURATION_INDEX = 3;
@@ -60,50 +61,132 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
     private static final String RECORD_POINT = "point";
     private static final String RECORD_POINT_IS_SHOW = "is_need_show_tag";
 
-    private static final String AUDIO_NOT_LIMIT_TYPE = "audio/*";
-    private static final String DIALOG_TAG_SELECT_MODE = "SelectMode";
-    private static final String DIALOG_TAG_SELECT_FORMAT = "SelectFormat";
-    private static final String DIALOG_TAG_SELECT_EFFECT = "SelectEffect";
-    private static final String SOUND_RECORDER_DATA = "sound_recorder_data";
+    private static final String RECORD_CHECK = "record_check";
     private static final String PATH = "path";
-    public static final String PLAY = "play";
-    public static final String RECORD = "record";
-    public static final String INIT = "init";
-    public static final String DOWHAT = "dowhat";
-    public static final String EMPTY = "";
-    public static final String ERROR_CODE = "errorCode";
 
     private ListView lViewRecord;
-    private TextView mSelectTextView;
+    private TextView mRecordCheckAll;
+    private TextView mRecordDelete;
     private HeadActionbar mActionbar;
+    private RecordCheckListAdapter mAdapter;
 
-    private RecordListAdapter mAdapter;
+    private Handler mHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.record_list);
-        initView();
+        setContentView(R.layout.record_check_list);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        initView();
         setListData(null);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        reset();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.record_check_all:
+                doSelectAll();
+                break;
+            case R.id.record_delete:
+                doDelete();
+                break;
+        }
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+             LogUtils.v(TAG,"onItemClick begin" );
+             if(!isEmptyList(mArrlist)){
+                 boolean isChecked = (boolean) mArrlist.get(position).get(RECORD_CHECK);
+                 LogUtils.v(TAG,"the position is " +isChecked);
+                 mArrlist.get(position).put(RECORD_CHECK,!isChecked);
+                 boolean isNewChecked = (boolean) mArrlist.get(position).get(RECORD_CHECK);
+                 String tempPath = mPathList.get(position);
+                 if(isNewChecked&&!mCheckedList.contains(tempPath)){
+                     LogUtils.v(TAG, "mCheckedList add " +tempPath);
+                     mCheckedList.add(tempPath);
+                 }else{
+                     if(mCheckedList.contains(tempPath)){
+                         LogUtils.v(TAG, "mCheckedList remove " +tempPath);
+                         mCheckedList.remove(tempPath);
+                     }
+                 }
+                 mAdapter.notifyDataSetChanged();
+             }
     }
 
     private void initView(){
         lViewRecord = (ListView) findViewById(R.id.record_list);
         lViewRecord.setOnItemClickListener(this);
-        mSelectTextView = (TextView) findViewById(R.id.record_select);
-        mSelectTextView.setOnClickListener(this);
+        mRecordCheckAll = (TextView) findViewById(R.id.record_check_all);
+        mRecordCheckAll.setOnClickListener(this);
+        mRecordDelete = (TextView) findViewById(R.id.record_delete);
+        mRecordDelete.setOnClickListener(this);
         mActionbar = (HeadActionbar) findViewById(R.id.action_bar);
-        mActionbar.setTitle(R.string.record_list_title);
+        mActionbar.setTitle(R.string.record_check_list_title);
+    }
+
+    public void doSelectAll(){
+        LogUtils.v(TAG,"doSelectAll begin");
+        if(isEmptyList(mArrlist)){
+            LogUtils.v(TAG,"the list is empty");
+            return;
+        }else{
+            for (int i =0;i<mArrlist.size();i++){
+                 mArrlist.get(i).put(RECORD_CHECK,true);
+                 mCheckedList.add(mPathList.get(i));
+                 if(mAdapter!=null){
+                     mAdapter.notifyDataSetChanged();
+                 }
+            }
+        }
+    }
+
+    public void doDelete(){
+        LogUtils.v(TAG,"doDelete begin");
+        FileDeleteTask fileDeleteTask=new FileDeleteTask();
+        fileDeleteTask.execute();
+    }
+
+    public void reset(){
+        if(!isEmptyList(mArrlist)){
+            mArrlist.clear();;
+        }
+        if(!isEmptyList(mCheckedList)){
+            mCheckedList.clear();
+        }
+        if(!isEmptyList(mPathList)){
+            mPathList.clear();
+        }
+    }
+
+    public static boolean isEmptyList(List list){
+        if(list != null&&list.size()>0){
+            return  false;
+        }
+        return true;
+    }
+
+    public List<File> getSelectedFiles(){
+        List<File> list = new ArrayList<File>();
+        int listSize = mCheckedList.size();
+        LogUtils.v(TAG, "getSelectedFiles: listSize" +listSize);
+        for (int i = 0; i < listSize; i++) {
+            File file = new File(mCheckedList.get(i));
+            LogUtils.v(TAG,"getSelectedFiles add " +file);
+            list.add(file);
+        }
+        return list;
     }
 
     /**
@@ -135,6 +218,7 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
         mTitleList.clear();
         mDurationList.clear();
         mIdList.clear();
+        mCheckedList.clear();
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(MediaStore.Audio.Media.IS_MUSIC);
@@ -191,6 +275,7 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
                 map.put(RECORD_NOW_PLAYING, false);
                 map.put(RECORD_POINT, tagCount + "");
                 map.put(RECORD_POINT_IS_SHOW, tagCount > 0 ? true : false);
+                map.put(RECORD_CHECK,false);
                 mNameList.add(fileName);
                 mPathList.add(path);
                 mTitleList.add(createDate);
@@ -198,7 +283,6 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
                 mIdList.add(recordId);
                 recordingFileCursor.moveToNext();
                 mArrlist.add(map);
-                Log.d(TAG, "queryData: " +fileName);
 
             }
         }catch (IllegalStateException e){
@@ -232,7 +316,7 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
     public void swicthAdapterView(int pos) {
         if (NORMAL == mCurrentAdapterMode) {
             LogUtils.v(TAG, "<swicthAdapterView> from edit mode to normal mode" +lViewRecord);
-            mAdapter = new RecordListAdapter(this, mArrlist);
+            mAdapter = new RecordCheckListAdapter(this, mArrlist);
             lViewRecord.setAdapter(mAdapter);
         }
     }
@@ -253,44 +337,12 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
         return timeCount;
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.record_select:
-                launcherCheckList();
-                break;
-        }
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        LogUtils.v(TAG,"onItemClick " +position);
-        Bundle bundle = new Bundle();
-        bundle.putString(PATH,mPathList.get(position));
-        bundle.putString(DURATION, mDurationList.get(position));
-        bundle.putString(FILE_NAME,mNameList.get(position));
-        launcherPlay(bundle);
-
-    }
-
-    public void launcherCheckList(){
-        Intent intent = new Intent(SoundRecordListActivity.this,SoundRecordCheckListActivity.class);
-        startActivity(intent);
-    }
-
-    public void launcherPlay(Bundle bundle){
-        Intent intent = new Intent(SoundRecordListActivity.this,SoundRecordPlayActivity.class);
-        intent.putExtras(bundle);
-         startActivity(intent);
-
-    }
-
     public  class QueryDataTask extends AsyncTask<Void,Object,ArrayList<HashMap<String,Object>>>{
 
         List<Integer> mList;
 
         public  QueryDataTask(List<Integer> list){
-          mList = list;
+            mList = list;
         }
 
         /**
@@ -317,6 +369,48 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
                 return;
             }
             afterQuery(mList);
+        }
+    }
+
+    class FileDeleteTask extends AsyncTask<Void,Object,Boolean>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            LogUtils.v(TAG,"FileDelete doInBackground begin");
+            try {
+                List<File> list = getSelectedFiles();
+                int listSize = list.size();
+                for (int i = 0; i < listSize; i++) {
+                    File file = list.get(i);
+                    if (null != file) {
+                        LogUtils.v(TAG,"------------delete file path--->"+file.getAbsolutePath());
+                    }
+                    if (!file.delete()) {
+                        LogUtils.v(TAG,"------------delete failed------------->"+list.get(i).getAbsolutePath());
+                    }
+                    if (!SoundRecorderUtils.deleteFileFromMediaDB(SoundRecordCheckListActivity.this,
+                            file.getAbsolutePath())) {
+                        LogUtils.v(TAG,"------------db delete failed------------->");
+                        return false;
+                    }
+                }
+                return true;
+            }catch (Exception ex){
+                LogUtils.v(TAG,"------------db delete failed------------->" +ex);
+                return  false;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            LogUtils.v(TAG,"FileDelete onPostExecute begin");
+            setListData(null);
         }
     }
 }

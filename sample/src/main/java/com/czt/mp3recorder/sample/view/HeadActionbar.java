@@ -41,6 +41,9 @@ public class HeadActionbar extends RelativeLayout{
         mTitle.setText(titleId);
     }
 
+    public void setTitle(String title){
+        mTitle.setText(title);
+    }
 
 }
 

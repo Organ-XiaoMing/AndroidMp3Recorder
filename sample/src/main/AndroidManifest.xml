@@ -30,6 +30,19 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+               <activity android:name=".ui.SoundRecordCheckListActivity">
+                    <intent-filter>
+                       <action android:name="com.intent.view.recordchecklist" />
+                        <category android:name="android.intent.category.DEFAULT" />
+                    </intent-filter>
+                </activity>
+               <activity android:name=".ui.SoundRecordPlayActivity">
+                   <intent-filter>
+                       <action android:name="com.intent.view.recordplay" />
+                       <category android:name="android.intent.category.DEFAULT" />
+                   </intent-filter>
+               </activity>
+
     </application>
 
 </manifest>
