@@ -72,6 +72,8 @@ public class SoundRecordCheckListActivity extends BaseActivity implements View.O
 
     private Handler mHandler = new Handler();
 
+    private boolean isHasSelectAll = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -142,12 +144,26 @@ public class SoundRecordCheckListActivity extends BaseActivity implements View.O
             LogUtils.v(TAG,"the list is empty");
             return;
         }else{
-            for (int i =0;i<mArrlist.size();i++){
-                 mArrlist.get(i).put(RECORD_CHECK,true);
-                 mCheckedList.add(mPathList.get(i));
-                 if(mAdapter!=null){
-                     mAdapter.notifyDataSetChanged();
-                 }
+            if(!isHasSelectAll){
+                for (int i =0;i<mArrlist.size();i++){
+                    mArrlist.get(i).put(RECORD_CHECK,true);
+                    mCheckedList.add(mPathList.get(i));
+                    if(mAdapter!=null){
+                        mAdapter.notifyDataSetChanged();
+                    }
+                }
+                isHasSelectAll = true;
+                mRecordCheckAll.setText(R.string.record_check_not_all);
+            }else{
+                for (int i =0;i<mArrlist.size();i++){
+                    mArrlist.get(i).put(RECORD_CHECK,false);
+                    mCheckedList.remove(mPathList.get(i));
+                    if(mAdapter!=null){
+                        mAdapter.notifyDataSetChanged();
+                    }
+                }
+                isHasSelectAll = false;
+                mRecordCheckAll.setText(R.string.record_check_all);
             }
         }
     }
