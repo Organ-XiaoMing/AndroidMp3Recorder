@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.czt.mp3recorder.sample.adapter.RecordCheckListAdapter;
 import com.czt.mp3recorder.sample.adapter.RecordListAdapter;
@@ -186,6 +187,10 @@ public class SoundRecordCheckListActivity extends BaseActivity implements View.O
 
     public void doDelete(){
         LogUtils.v(TAG,"doDelete begin");
+        if(mCheckedList.size() == 0){
+            Toast.makeText(SoundRecordCheckListActivity.this,R.string.record_delete_message,Toast.LENGTH_SHORT).show();
+            return;
+        }
         FileDeleteTask fileDeleteTask=new FileDeleteTask();
         fileDeleteTask.execute();
     }

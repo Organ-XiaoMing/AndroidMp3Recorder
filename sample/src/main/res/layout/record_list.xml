@@ -15,7 +15,9 @@
         <ListView
             android:id="@+id/record_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:layoutAnimation="@anim/anim_listview_item"
+            />
     </LinearLayout>
     <FrameLayout
         android:background="#822842"
