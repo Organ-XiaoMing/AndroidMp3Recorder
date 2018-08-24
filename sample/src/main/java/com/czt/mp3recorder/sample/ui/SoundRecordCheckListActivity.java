@@ -9,6 +9,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -17,6 +18,8 @@ import com.czt.mp3recorder.sample.adapter.RecordListAdapter;
 import com.czt.mp3recorder.sample.util.LogUtils;
 import com.czt.mp3recorder.sample.util.SoundRecorderUtils;
 import com.czt.mp3recorder.sample.view.HeadActionbar;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -68,6 +71,8 @@ public class SoundRecordCheckListActivity extends BaseActivity implements View.O
     private TextView mRecordCheckAll;
     private TextView mRecordDelete;
     private HeadActionbar mActionbar;
+    private ImageView mBack;
+
     private RecordCheckListAdapter mAdapter;
 
     private Handler mHandler = new Handler();
@@ -94,6 +99,11 @@ public class SoundRecordCheckListActivity extends BaseActivity implements View.O
     }
 
     @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
+    @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.record_check_all:
@@ -102,8 +112,12 @@ public class SoundRecordCheckListActivity extends BaseActivity implements View.O
             case R.id.record_delete:
                 doDelete();
                 break;
+            case R.id.actionbar_back_btn:
+                onBackPressed();
+                break;
         }
     }
+
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -136,6 +150,8 @@ public class SoundRecordCheckListActivity extends BaseActivity implements View.O
         mRecordDelete.setOnClickListener(this);
         mActionbar = (HeadActionbar) findViewById(R.id.action_bar);
         mActionbar.setTitle(R.string.record_check_list_title);
+        mBack = (ImageView) findViewById(R.id.actionbar_back_btn);
+        mBack.setOnClickListener(this);
     }
 
     public void doSelectAll(){

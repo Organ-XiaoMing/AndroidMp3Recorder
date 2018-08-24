@@ -34,12 +34,14 @@ import java.util.List;
 public class SoundRecordActivity extends BaseActivity implements View.OnClickListener,SoundRecordService.RecorderListener{
 
     private static final String TAG = "SoundRecordActivity";
+
     private HeadActionbar mActionbar;
     private ImageView mStartRecord;
     private ImageView mSaveRecord;
     private ImageView mRecentRecord;
     private TextView mRecordTime;
     private TextView mRecordFile;
+    private ImageView mBack;
 
     private boolean mIsHavePermission=true;
 
@@ -97,6 +99,11 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
     }
 
     @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
+    @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.record_start:
@@ -123,6 +130,9 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
                 //mService.pauseRecordingAsync();
                 launcerRecordList();
                 break;
+            case R.id.actionbar_back_btn:
+                onBackPressed();
+                break;
         }
     }
 
@@ -147,6 +157,8 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
         mRecentRecord.setOnClickListener(this);
         mRecordTime = (TextView) findViewById(R.id.record_time);
         mRecordFile = (TextView) findViewById(R.id.record_file);
+        mBack = (ImageView) findViewById(R.id.actionbar_back_btn);
+        mBack.setOnClickListener(this);
     }
 
     public void onClickRecordButton(){

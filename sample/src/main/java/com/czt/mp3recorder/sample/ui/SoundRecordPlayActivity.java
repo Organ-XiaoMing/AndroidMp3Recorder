@@ -35,6 +35,7 @@ public class SoundRecordPlayActivity extends Activity implements View.OnClickLis
     private TextView mCountDownTimeTV;
     private ImageView mPlayImageView;
     private HeadActionbar mActionbar;
+    private ImageView mBack;
 
     private  Bundle mBundle;
 
@@ -85,12 +86,19 @@ public class SoundRecordPlayActivity extends Activity implements View.OnClickLis
         stopPlaybackAsync();
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
     private void initView(){
         mPlayTimeTV = (TextView) findViewById(R.id.play_time);
         mCountDownTimeTV = (TextView) findViewById(R.id.play_countdown_time);
         mPlayImageView = (ImageView) findViewById(R.id.play_pause);
         mPlayImageView.setOnClickListener(this);
         mActionbar = (HeadActionbar) findViewById(R.id.action_bar);
+        mBack = (ImageView) findViewById(R.id.actionbar_back_btn);
+        mBack.setOnClickListener(this);
     }
 
     public void updateImageView(int stateCode){
@@ -107,6 +115,9 @@ public class SoundRecordPlayActivity extends Activity implements View.OnClickLis
                 case R.id.play_pause:
                     doPlay();
                     break;
+                case R.id.actionbar_back_btn:
+                    onBackPressed();
+                    break;
             }
     }
 
@@ -120,6 +131,9 @@ public class SoundRecordPlayActivity extends Activity implements View.OnClickLis
                 break;
             case SoundRecorderPlayHandler.STATE_PAUSE_PLAYING:
                 goonPlaybackAsync();
+                break;
+            case R.id.actionbar_back_btn:
+                onBackPressed();
                 break;
         }
     }

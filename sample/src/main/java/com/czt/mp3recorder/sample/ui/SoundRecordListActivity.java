@@ -10,6 +10,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -76,6 +77,7 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
     private ListView lViewRecord;
     private TextView mSelectTextView;
     private HeadActionbar mActionbar;
+    private ImageView mBack;
 
     private RecordListAdapter mAdapter;
 
@@ -97,6 +99,11 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
         super.onDestroy();
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
     private void initView(){
         lViewRecord = (ListView) findViewById(R.id.record_list);
         lViewRecord.setOnItemClickListener(this);
@@ -104,6 +111,8 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
         mSelectTextView.setOnClickListener(this);
         mActionbar = (HeadActionbar) findViewById(R.id.action_bar);
         mActionbar.setTitle(R.string.record_list_title);
+        mBack = (ImageView) findViewById(R.id.actionbar_back_btn);
+        mBack.setOnClickListener(this);
     }
 
     /**
@@ -258,6 +267,9 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
         switch (v.getId()){
             case R.id.record_select:
                 launcherCheckList();
+                break;
+            case R.id.actionbar_back_btn:
+                onBackPressed();
                 break;
         }
     }
