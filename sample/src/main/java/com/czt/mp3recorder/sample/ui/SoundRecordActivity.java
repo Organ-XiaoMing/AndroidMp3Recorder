@@ -1,9 +1,11 @@
 package com.czt.mp3recorder.sample.ui;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
@@ -22,6 +24,8 @@ import com.czt.mp3recorder.util.LameUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Ming.Xiao on 2018/8/21.
@@ -37,8 +41,12 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
     private TextView mRecordTime;
     private TextView mRecordFile;
 
+    private boolean mIsHavePermission=true;
 
     private SoundRecordService mService;
+
+    private static final int PERMISSION_RECORD_AUDIO = 1;
+    private static final int PERMISSION_READ_STORAGE_LIST = 3;
 
     private int mCurrentState = SoundRecordService.STATE_IDLE;
 
@@ -68,6 +76,7 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
     @Override
     protected void onResume() {
         super.onResume();
+        mIsHavePermission = true;
         if(mService == null){
             if (!bindService(new Intent(SoundRecordActivity.this, SoundRecordService.class),
                     mServiceConnection, BIND_AUTO_CREATE)) {
@@ -94,11 +103,7 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
                 LogUtils.v(TAG,"startRecordingAsync mCurrentState " +mCurrentState);
                 switch (mCurrentState){
                     case SoundRecordService.STATE_IDLE:
-                        LogUtils.v(TAG,"startRecordingAsync begin");
-                        String fileName = "REC"+System.currentTimeMillis()+".mp3";
-                        File file =   new File(Environment.getExternalStorageDirectory(),fileName);
-                        updateFileUI(file);
-                        mService.startRecordingAsync(file);
+                        onClickRecordButton();
                         break;
                     case SoundRecordService.STATE_PAUSE_RECORDING:
                         LogUtils.v(TAG,"onresumeRecordingAsync");
@@ -142,6 +147,42 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
         mRecentRecord.setOnClickListener(this);
         mRecordTime = (TextView) findViewById(R.id.record_time);
         mRecordFile = (TextView) findViewById(R.id.record_file);
+    }
+
+    public void onClickRecordButton(){
+
+        int recordAudioPermission = checkSelfPermission(Manifest.permission.RECORD_AUDIO);
+        int readExtStorage = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+        int writeExtStorage = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        List<String> mPermissionStrings = new ArrayList<String>();
+        boolean mRequest = false;
+        LogUtils.v(TAG, "<onClickRecordButton1> " + recordAudioPermission + readExtStorage);
+        if (readExtStorage != PackageManager.PERMISSION_GRANTED) {
+            mPermissionStrings.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            mRequest = true;
+        }
+        if (writeExtStorage != PackageManager.PERMISSION_GRANTED) {
+            mPermissionStrings.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            mRequest = true;
+        }
+        if (recordAudioPermission != PackageManager.PERMISSION_GRANTED) {
+            mPermissionStrings.add(Manifest.permission.RECORD_AUDIO);
+            mRequest = true;
+        }
+        if (mRequest == true) {
+            String[] mPermissionList = new String[mPermissionStrings.size()];
+            mPermissionList = mPermissionStrings.toArray(mPermissionList);
+            requestPermissions(mPermissionList, PERMISSION_RECORD_AUDIO);
+            mIsHavePermission=false;
+            return;
+        }
+
+        LogUtils.v(TAG,"startRecordingAsync begin");
+        String fileName = "REC"+System.currentTimeMillis()+".mp3";
+        File file =   new File(Environment.getExternalStorageDirectory(),fileName);
+        updateFileUI(file);
+        mService.startRecordingAsync(file);
+
     }
 
     public void updateUi(int state){

@@ -9,6 +9,7 @@
     <string name="select">选择</string>
     <string name="record_list_title">录音记录</string>
     <string name="record_check_all">全选</string>
+    <string name="record_check_not_all">全不选</string>
     <string name="record_check_delete">删除</string>
     <string name="record_check_list_title">录音列表</string>
     <string name="record_save_message">已保存至手机存储/rec</string>

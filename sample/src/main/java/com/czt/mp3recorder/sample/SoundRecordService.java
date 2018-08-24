@@ -104,7 +104,7 @@ public class SoundRecordService extends Service implements MP3Recorder.Mp3Record
 
     public void onresumeRecordingAsync(){
         LogUtils.v(TAG, "<onresumeRecordingAsync>");
-        sendThreadHandlerMessage(SoundRecorderServiceHandler.START_REOCRD);
+        sendThreadHandlerMessage(SoundRecorderServiceHandler.ONRESUME_RECORD);
     }
 
     public void pauseRecordingAsync() {

@@ -103,6 +103,7 @@ public class MP3Recorder {
 			public void run() {
 				//设置线程权限
 				android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+				while (currentState!=STATE_IDLE){
 					while (isRecording()) {
 						int readSize = mAudioRecord.read(mPCMBuffer, 0, mBufferSize);
 						if (readSize > 0) {
@@ -111,6 +112,7 @@ public class MP3Recorder {
 						}
 					}
 
+				}
 				// release and finalize audioRecord
 				mAudioRecord.stop();
 				mAudioRecord.release();
