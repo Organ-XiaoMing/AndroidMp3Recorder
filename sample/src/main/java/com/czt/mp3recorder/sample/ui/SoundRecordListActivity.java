@@ -306,8 +306,8 @@ public class SoundRecordListActivity extends BaseActivity implements View.OnClic
         }
 
         @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
+        protected void onPostExecute(ArrayList<HashMap<String, Object>> hashMaps) {
+            super.onPostExecute(hashMaps);
             LogUtils.v(TAG, "<QueryDataTask.onPostExecute>");
             if(mQueryTask == QueryDataTask.this){
                 mQueryTask = null;

@@ -358,8 +358,8 @@ public class SoundRecordCheckListActivity extends BaseActivity implements View.O
         }
 
         @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
+        protected void onPostExecute(ArrayList<HashMap<String, Object>> hashMaps) {
+            super.onPostExecute(hashMaps);
             LogUtils.v(TAG, "<QueryDataTask.onPostExecute>");
             if(mQueryTask == QueryDataTask.this){
                 mQueryTask = null;
