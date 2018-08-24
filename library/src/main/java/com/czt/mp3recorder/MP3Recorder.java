@@ -177,7 +177,7 @@ public class MP3Recorder {
 	}
 
 	public void restart(){
-		currentState = STATE_IDLE;
+		setState(STATE_IDLE);
 	}
 
 	public void  pause(){

@@ -11,4 +11,5 @@
     <string name="record_check_all">全选</string>
     <string name="record_check_delete">删除</string>
     <string name="record_check_list_title">录音列表</string>
+    <string name="record_save_message">已保存至手机存储/rec</string>
 </resources>

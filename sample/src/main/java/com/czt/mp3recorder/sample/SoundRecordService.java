@@ -20,6 +20,7 @@ import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.czt.mp3recorder.MP3Recorder;
 import com.czt.mp3recorder.sample.bean.Constant;
@@ -92,16 +93,17 @@ public class SoundRecordService extends Service implements MP3Recorder.Mp3Record
         mListener.onStateChanged(state);
     }
 
-    public int getCurrentState() {
-        return mCurrentState;
-    }
-
-    public void startRecordingAsync(){
+    public void startRecordingAsync(File file){
         LogUtils.v(TAG, "<startRecordingAsync>");
         if(mCurrentState == STATE_IDLE){
             LogUtils.v(TAG, "<startRecordingAsync> new MP3 File");
-            mMp3Record.initFile(new File(Environment.getExternalStorageDirectory(),Constant.temp));
+            mMp3Record.initFile(file);
         }
+        sendThreadHandlerMessage(SoundRecorderServiceHandler.START_REOCRD);
+    }
+
+    public void onresumeRecordingAsync(){
+        LogUtils.v(TAG, "<onresumeRecordingAsync>");
         sendThreadHandlerMessage(SoundRecorderServiceHandler.START_REOCRD);
     }
 
@@ -136,13 +138,14 @@ public class SoundRecordService extends Service implements MP3Recorder.Mp3Record
         public static final int PAUSE_REOCRD = 1;
         public static final int STOP_REOCRD = 2;
         public static final int SAVE_RECORD = 3;
+        public static final int ONRESUME_RECORD = 4;
 
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what){
                 case START_REOCRD:
-                    startrecord();
+                    startRecord();
                     break;
                 case PAUSE_REOCRD:
                     pauseRecord();
@@ -153,20 +156,23 @@ public class SoundRecordService extends Service implements MP3Recorder.Mp3Record
                 case SAVE_RECORD:
                     saveRecord();
                     break;
+                case ONRESUME_RECORD:
+                    onresumeRecord();
+                    break;
             }
         }
     }
 
-    public void startrecord(){
-        if(mCurrentState == STATE_PAUSE_RECORDING){
-            mMp3Record.onresume();
-        }else{
+    public void startRecord(){
             try {
                 mMp3Record.start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+    }
+
+    public void onresumeRecord(){
+            mMp3Record.onresume();
     }
 
     public void stopRecord(){
@@ -231,6 +237,7 @@ public class SoundRecordService extends Service implements MP3Recorder.Mp3Record
             LogUtils.v(TAG, "<addToMediaDB> Save failed in DB");
         } else {
             LogUtils.v(TAG, "<addToMediaDB> Save susceeded in DB");
+            Toast.makeText(SoundRecordService.this,R.string.record_save_message,Toast.LENGTH_SHORT).show();
             if (PLAYLIST_ID_NULL == getPlaylistId(res)) {
                 createPlaylist(res, resolver);
             }

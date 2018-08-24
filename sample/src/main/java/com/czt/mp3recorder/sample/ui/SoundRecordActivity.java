@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
@@ -34,6 +35,8 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
     private ImageView mSaveRecord;
     private ImageView mRecentRecord;
     private TextView mRecordTime;
+    private TextView mRecordFile;
+
 
     private SoundRecordService mService;
 
@@ -88,16 +91,27 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.record_start:
-                if(mCurrentState ==SoundRecordService.STATE_IDLE||mCurrentState == SoundRecordService.STATE_PAUSE_RECORDING){
-                    LogUtils.v(TAG,"startRecordingAsync begin");
-                    mService.startRecordingAsync();
-                }else if(mCurrentState == SoundRecordService.STATE_RECORDING){
-                    LogUtils.v(TAG,"pauseRecordingAsync mCurrentState");
-                    mService.pauseRecordingAsync();
+                LogUtils.v(TAG,"startRecordingAsync mCurrentState " +mCurrentState);
+                switch (mCurrentState){
+                    case SoundRecordService.STATE_IDLE:
+                        LogUtils.v(TAG,"startRecordingAsync begin");
+                        File file =   new File(Environment.getExternalStorageDirectory(),Constant.temp);
+                        updateFileUI(file);
+                        mService.startRecordingAsync(file);
+                        break;
+                    case SoundRecordService.STATE_PAUSE_RECORDING:
+                        LogUtils.v(TAG,"onresumeRecordingAsync");
+                        mService.onresumeRecordingAsync();
+                        break;
+                    case SoundRecordService.STATE_RECORDING:
+                        LogUtils.v(TAG,"pauseRecordingAsync");
+                        mService.pauseRecordingAsync();
+                        break;
                 }
                 break;
             case R.id.record_left:
                 mService.saveRecordAsync();
+                updateFileUI(null);
                 break;
             case R.id.record_right:
                 //mService.pauseRecordingAsync();
@@ -126,6 +140,7 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
         mRecentRecord = (ImageView) findViewById(R.id.record_right);
         mRecentRecord.setOnClickListener(this);
         mRecordTime = (TextView) findViewById(R.id.record_time);
+        mRecordFile = (TextView) findViewById(R.id.record_file);
     }
 
     public void updateUi(int state){
@@ -134,6 +149,16 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
         }
         if(state == SoundRecordService.STATE_PAUSE_RECORDING||state == SoundRecordService.STATE_IDLE){
             mStartRecord.setImageResource(R.drawable.record_nomal);
+        }
+    }
+
+    public void updateFileUI(File file){
+        if(file!=null){
+            mRecordFile.setVisibility(View.VISIBLE);
+            mRecordFile.setText(file.getName());
+        }else{
+            mRecordFile.setVisibility(View.GONE);
+            mRecordFile.setText("");
         }
     }
 
