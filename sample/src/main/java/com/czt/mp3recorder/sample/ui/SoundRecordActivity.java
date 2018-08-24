@@ -37,6 +37,9 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
 
     private SoundRecordService mService;
 
+    private int mCurrentState = SoundRecordService.STATE_IDLE;
+
+
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -85,13 +88,19 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.record_start:
-                mService.startRecordingAsync();
+                if(mCurrentState ==SoundRecordService.STATE_IDLE||mCurrentState == SoundRecordService.STATE_PAUSE_RECORDING){
+                    LogUtils.v(TAG,"startRecordingAsync begin");
+                    mService.startRecordingAsync();
+                }else if(mCurrentState == SoundRecordService.STATE_RECORDING){
+                    LogUtils.v(TAG,"pauseRecordingAsync mCurrentState");
+                    mService.pauseRecordingAsync();
+                }
                 break;
             case R.id.record_left:
                 mService.saveRecordAsync();
                 break;
             case R.id.record_right:
-                mService.pauseRecordingAsync();
+                //mService.pauseRecordingAsync();
                 launcerRecordList();
                 break;
         }
@@ -99,14 +108,8 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
 
     @Override
     public void onStateChanged(int stateCode) {
-        /*switch (stateCode){
-            case SoundRecordService.STATE_RECORDING:
-                updateUi();
-                break;
-            case  SoundRecordService.STATE_SAVE_RECORDING:
-                break;
-        }*/
         Log.d(TAG, "onStateChanged: " +stateCode);
+        mCurrentState = stateCode;
         updateUi(stateCode);
     }
 
@@ -129,7 +132,7 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
         if(state == SoundRecordService.STATE_RECORDING){
             mStartRecord.setImageResource(R.drawable.record_pause);
         }
-        if(state == SoundRecordService.STATE_SAVE_RECORDING){
+        if(state == SoundRecordService.STATE_PAUSE_RECORDING||state == SoundRecordService.STATE_IDLE){
             mStartRecord.setImageResource(R.drawable.record_nomal);
         }
     }

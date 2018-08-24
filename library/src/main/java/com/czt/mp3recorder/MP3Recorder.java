@@ -55,6 +55,17 @@ public class MP3Recorder {
 	public static final int STATE_RECORDING = 2;
 	public static final int STATE_PAUSE_RECORDING = 3;
 	public static final int STATE_SAVE_RECORDING = 4;
+	public static final int STATE_STOP = 5;
+
+	private Mp3RecorderListener mListener;
+
+	public interface Mp3RecorderListener {
+		void onStateChanged(int stateCode);
+	}
+
+	public void setListener(Mp3RecorderListener listener){
+		this.mListener = listener;
+	}
 
 	/**
 	 * Default constructor. Setup recorder with default sampling rate 1 channel,
@@ -69,26 +80,29 @@ public class MP3Recorder {
 
 	}
 
+	public void initFile(File file){
+		this.mRecordFile = file;
+	}
+
 	/**
 	 * Start recording. Create an encoding thread. Start record from this
 	 * thread.
 	 * 
 	 * @throws IOException  initAudioRecorder throws
 	 */
-	public void start(File file) throws IOException {
-		mRecordFile = file;
+	public void start() throws IOException {
 		if (isRecording()) {
 			return;
 		}
 		currentState = STATE_RECORDING; // 提早，防止init或startRecording被多次调用
-	    initAudioRecorder();
+		setState(STATE_RECORDING);
+		initAudioRecorder();
 		mAudioRecord.startRecording();
 		new Thread() {
 			@Override
 			public void run() {
 				//设置线程权限
 				android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-				while(currentState != STATE_SAVE_RECORDING) {
 					while (isRecording()) {
 						int readSize = mAudioRecord.read(mPCMBuffer, 0, mBufferSize);
 						if (readSize > 0) {
@@ -96,7 +110,7 @@ public class MP3Recorder {
 							calculateRealVolume(mPCMBuffer, readSize);
 						}
 					}
-				}
+
 				// release and finalize audioRecord
 				mAudioRecord.stop();
 				mAudioRecord.release();
@@ -155,7 +169,7 @@ public class MP3Recorder {
 	}
 
 	public void stop(){
-		currentState = STATE_SAVE_RECORDING;
+		setState(STATE_STOP);
 	}
 
 	public File getRecordFile(){
@@ -163,15 +177,26 @@ public class MP3Recorder {
 	}
 
 	public void restart(){
-		currentState = STATE_RECORDING;
+		currentState = STATE_IDLE;
 	}
 
 	public void  pause(){
 		currentState = STATE_PAUSE_RECORDING;
+		setState(STATE_PAUSE_RECORDING);
+	}
+
+	public void onresume(){
+		currentState = STATE_RECORDING;
+		setState(STATE_RECORDING);
+	}
+
+	public void setState(int state){
+		currentState =state;
+		mListener.onStateChanged(state);
 	}
 
 	public boolean isRecording() {
-		return currentState == STATE_RECORDING;
+		return currentState == STATE_RECORDING ;
 	}
 	/**
 	 * Initialize audio recorder

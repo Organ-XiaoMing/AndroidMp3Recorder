@@ -37,7 +37,7 @@ import java.util.List;
  * Created by Ming.Xiao on 2018/8/21.
  */
 
-public class SoundRecordService extends Service{
+public class SoundRecordService extends Service implements MP3Recorder.Mp3RecorderListener{
 
     public static final String TAG = "SoundRecordService";
     public static final int STATE_IDLE = 1;
@@ -68,6 +68,7 @@ public class SoundRecordService extends Service{
         super.onCreate();
 
         mMp3Record = new MP3Recorder();
+        mMp3Record.setListener(this);
 
         mHandlerThread = new HandlerThread(HANDLER_THREAD_NAME);
         mHandlerThread.start();
@@ -97,9 +98,9 @@ public class SoundRecordService extends Service{
 
     public void startRecordingAsync(){
         LogUtils.v(TAG, "<startRecordingAsync>");
-
-        if(mCurrentState == STATE_RECORDING){
-            return;
+        if(mCurrentState == STATE_IDLE){
+            LogUtils.v(TAG, "<startRecordingAsync> new MP3 File");
+            mMp3Record.initFile(new File(Environment.getExternalStorageDirectory(),Constant.temp));
         }
         sendThreadHandlerMessage(SoundRecorderServiceHandler.START_REOCRD);
     }
@@ -119,6 +120,12 @@ public class SoundRecordService extends Service{
         mSoundRecorderServiceHandler.sendEmptyMessage(what);
     }
 
+    @Override
+    public void onStateChanged(int stateCode) {
+        LogUtils.v(TAG,"onStateChanged " +stateCode);
+        setState(stateCode);
+    }
+
     public  class  SoundRecorderServiceHandler extends Handler{
 
         public SoundRecorderServiceHandler(Looper looper) {
@@ -135,7 +142,7 @@ public class SoundRecordService extends Service{
             super.handleMessage(msg);
             switch (msg.what){
                 case START_REOCRD:
-                    record();
+                    startrecord();
                     break;
                 case PAUSE_REOCRD:
                     pauseRecord();
@@ -150,28 +157,24 @@ public class SoundRecordService extends Service{
         }
     }
 
-    public void record(){
+    public void startrecord(){
         if(mCurrentState == STATE_PAUSE_RECORDING){
-            mMp3Record.restart();
-        }else {
+            mMp3Record.onresume();
+        }else{
             try {
-                mMp3Record.start(new File(Environment.getExternalStorageDirectory(),Constant.temp));
+                mMp3Record.start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        setState(STATE_RECORDING);
     }
 
     public void stopRecord(){
         mMp3Record.stop();
-        setState(STATE_SAVE_RECORDING);
     }
 
     public void saveRecord(){
         mMp3Record.stop();
-        setState(STATE_SAVE_RECORDING);
-
         File currentFile = mMp3Record.getRecordFile();
         if(currentFile == null){
             LogUtils.v(TAG,"currentFile is no exist");
@@ -179,6 +182,8 @@ public class SoundRecordService extends Service{
         }
         mTotalRecordingDuration = 0;
         mUri = addToMediaDB(currentFile);
+        mMp3Record.restart();
+
     }
 
     public void pauseRecord(){
