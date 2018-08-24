@@ -95,7 +95,8 @@ public class SoundRecordActivity extends BaseActivity implements View.OnClickLis
                 switch (mCurrentState){
                     case SoundRecordService.STATE_IDLE:
                         LogUtils.v(TAG,"startRecordingAsync begin");
-                        File file =   new File(Environment.getExternalStorageDirectory(),Constant.temp);
+                        String fileName = "REC"+System.currentTimeMillis()+".mp3";
+                        File file =   new File(Environment.getExternalStorageDirectory(),fileName);
                         updateFileUI(file);
                         mService.startRecordingAsync(file);
                         break;
